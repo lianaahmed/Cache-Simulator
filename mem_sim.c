@@ -166,13 +166,18 @@ int main(int argc, char** argv) {
      * Use the following snippet and add your code to finish the task. */
 
     /* You may want to setup your Cache structure here. */
-
-    // Initialise index size
-
+    
+    // Initialise offsetBits size
     int offsetBits = log(cache_block_size) / log(2);
+    
+    // Initialise indexBits size
     int indexBits = log(number_of_cache_blocks / associativity) / log(2);
-   
-   // Initialise loop counters
+
+    // Initialise tagBits size
+    int tagBits = 32 - indexBits - offsetBits;
+
+
+    // Initialise loop counters
 
     int i;
     int j;
