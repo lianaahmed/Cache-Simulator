@@ -173,7 +173,7 @@ int main(int argc, char** argv) {
     int indexBits = log(number_of_cache_blocks / associativity) / log(2);
    
    // Initialise loop counters
-   
+
     int i;
     int j;
 
@@ -199,7 +199,7 @@ int main(int argc, char** argv) {
 
     for (i = 0; i < indexBits; i++){
         for (j = 0; j < associativity; j++){
-            cache[i][j] = 0;
+            valid[i][j] = 0;
         }
     }
 
@@ -209,8 +209,10 @@ int main(int argc, char** argv) {
     while(1) {
         access = read_transaction(ptr_file);
         // If no transactions left, break out of loop.
-        if (access.address == 0)
+        if (access.address == 0){
             break;
+        }
+            
 
         /* Add your code here */
 
