@@ -99,6 +99,8 @@ void print_statistics(uint32_t num_cache_tag_bits, uint32_t cache_offset_bits, r
  */
 
 
+
+
 int main(int argc, char** argv) {
     time_t t;
     /* Intializes random number generator */
@@ -165,7 +167,44 @@ int main(int argc, char** argv) {
 
     /* You may want to setup your Cache structure here. */
 
+    // Initialise index size
+
+    int offsetBits = log(cache_block_size) / log(2);
+    int indexBits = log(number_of_cache_blocks / associativity) / log(2);
+   
+   // Initialise loop counters
+   
+    int i;
+    int j;
+
+    // 2D array for Cache
+
+    uint32_t **cache;
+    cache = malloc(sizeof(uint32_t*)*indexBits);
+    
+    for (i = 0; i < indexBits; i++){
+        cache[i] = malloc(sizeof(uint32_t*)*associativity);
+    }
+
+    // 2D array to check valid values in the Cache array
+
+    uint32_t **valid;
+    valid = malloc(sizeof(uint32_t*)*indexBits);
+
+    for (i = 0; i < indexBits; i++){
+        valid[i] = malloc(sizeof(uint32_t*)*associativity);
+    }
+
+    // Initialise all values in the valid array to 0
+
+    for (i = 0; i < indexBits; i++){
+        for (j = 0; j < associativity; j++){
+            cache[i][j] = 0;
+        }
+    }
+
     mem_access_t access;
+
     /* Loop until the whole trace file has been read. */
     while(1) {
         access = read_transaction(ptr_file);
