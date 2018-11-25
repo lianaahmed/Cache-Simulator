@@ -98,7 +98,18 @@ void print_statistics(uint32_t num_cache_tag_bits, uint32_t cache_offset_bits, r
  *
  */
 
+// Counters for Hits and Misses
 
+int hits = 0;
+int misses = 0;
+
+// Gets specified bits from a 32 bit address
+
+int getBits(int address, int bitsLen, int pos){
+
+    return (((1 << bitsLen) - 1) & (address >> (pos - 1)));
+
+}
 
 int main(int argc, char** argv) {
     time_t t;
@@ -167,13 +178,13 @@ int main(int argc, char** argv) {
     /* You may want to setup your Cache structure here. */
     
     // Initialise offsetBits size
-    int g_cache_offset_bits = log(cache_block_size) / log(2);
+    int CacheOffsetBits = log(cache_block_size) / log(2);
     
     // Initialise indexBits size
-    int indexBits = log(number_of_cache_blocks / associativity) / log(2);
+    int indexSize = log(number_of_cache_blocks / associativity) / log(2);
 
     // Initialise tagBits size
-    int g_num_cache_tag_bits = 32 - indexBits - g_cache_offset_bits;
+    int CacheTagBits = 32 - indexSize - g_cache_offset_bits;
 
 
     // Initialise loop counters
@@ -184,46 +195,121 @@ int main(int argc, char** argv) {
     // 2D array for Cache
 
     uint32_t **cache;
-    cache = malloc(sizeof(uint32_t*)*indexBits);
+    cache = malloc(sizeof(uint32_t*)*indexSize);
     
-    for (i = 0; i < indexBits; i++){
+    for (i = 0; i < indexSize; i++){
         cache[i] = malloc(sizeof(uint32_t*)*associativity);
     }
 
     // 2D array to check valid values in the Cache array
 
     uint32_t **valid;
-    valid = malloc(sizeof(uint32_t*)*indexBits);
+    valid = malloc(sizeof(uint32_t*)*indexSize);
 
-    for (i = 0; i < indexBits; i++){
+    for (i = 0; i < indexSize; i++){
         valid[i] = malloc(sizeof(uint32_t*)*associativity);
     }
-
     // Initialise all values in the valid array to 0
 
-    for (i = 0; i < indexBits; i++){
+    for (i = 0; i < indexSize; i++){
         for (j = 0; j < associativity; j++){
             valid[i][j] = 0;
         }
     }
 
+    free(cache);
+    free(valid);
+    
     mem_access_t access;
 
     /* Loop until the whole trace file has been read. */
-
     
     while(1) {
+
         access = read_transaction(ptr_file);
+
+        int currentIndex = getBits(access.address, indexSize, g_cache_offset_bits);
+        int currentTag = getBits(access.address, g_num_cache_tag_bits, indexSize + 1);
+      
         // If no transactions left, break out of loop.
+
         if (access.address == 0){
             break;
         }
-        
-        
-        /* Add your code here */
+
+        // Add your code here!
+
+        for (i = 0; i < associativity; i ++){
+
+            // If at the last position in the cache
+            if(i == (associativity - 1)){
+
+                // check if there isn't an item in the cache
+
+                if(valid[currentIndex][i] == 0){
+
+                    // if there isn't, add the current tag to the cache
+                    // set valid to 1
+
+                    cache[currentIndex][i] == currentTag;
+                    valid[currentIndex][i] == 1;
+
+                    break;
+
+                // check if there is an item in the cache
+
+                } else if (valid[currentIndex][i] == 1) {
+
+                    // If there is, check if the tag matches the current tag in the cache
+
+                    if(cache[currentIndex][i] == currentTag){
+
+                        // if there is, add 1 to the hits counter and break
+                        hits++;
+                        break;
+                    } 
+                    else {
+
+                        // if there isn't, add 1 to the misses counter and break
+                        misses++;
+                        break;
+
+                    }
+
+                }
+
+            // If not at last position in the cache
+            // check if there isn't an item in the cache
+
+            } else if(valid[currentIndex][i] == 0){
+
+                // if there isn't, add the current tag to the cache
+                // set valid to 1
+
+                cache[currentIndex][i] == currentTag;
+                valid[currentIndex][i] == 1;
+
+                break;
+
+            // check if there is an item in the cache
+
+            } else if (valid[currentIndex][i] == 1) {
+
+                // if there is, add 1 to the hits counter and break
+
+                if(cache[currentIndex][i] == currentTag){
+                    hits++;
+                    break;
+                }
+
+            }
+        }
 
     }
 
+    g_result.cache_hits = hits;
+    g_result.cache_misses = misses;
+    
     /* Do not modify code below. */
     /* Make sure that all the parameters are appropriately populated. */
     print_statistics(g_num_cache_tag_bits, g_cache_offset_bits, &g_result);
