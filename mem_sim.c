@@ -215,20 +215,20 @@ int main(int argc, char** argv) {
         }
     }
 
-    // 2D array used to check when each address was accessed for the replacement values
+    // 2D array used to keep track of when each cache position was accessed
 
-    uint32_t **queue;
-    queue = malloc(setsNum*sizeof(uint32_t*));
+    uint32_t **LRU_queue;
+    LRU_queue = malloc(setsNum*sizeof(uint32_t*));
 
     for (int i = 0; i < setsNum; i++){
-        *(queue + i) = malloc(associativity*sizeof(uint32_t));
+        *(LRU_queue + i) = malloc(associativity*sizeof(uint32_t));
     }
 
-    // Initialise all values in the queue array to -1
+    // Initialise all values in the LRU_queue array to -1
 
     for (int i = 0; i < setsNum; i++){
         for (int j = 0; j < associativity; j++){
-            queue[i][j] = -1;
+            LRU_queue[i][j] = -1;
         }
     }
 
@@ -265,11 +265,11 @@ int main(int argc, char** argv) {
                     // if there isn't:
                     // add the current tag to the cache
                     // set valid to 1
-                    // add 1 to the queue position
+                    // add 1 to the LRU_queue position
 
                     cache[currentIndex][i] == currentTag;
                     valid[currentIndex][i] == 1;
-                    queue[currentIndex][i]++;
+                    LRU_queue[currentIndex][i]++;
 
                     break;
 
@@ -280,11 +280,11 @@ int main(int argc, char** argv) {
                     // If there is, check if the tag matches the current tag in the cache
                     if(cache[currentIndex][i] == currentTag){
                         
-                        // if there is, loop through every value > -1 in the queue array and add 1
+                        // if there is, loop through every value > -1 in the LRU_queue array and add 1
                         for(int j = 0; j < associativity; j++){
 
-                            if(queue[currentIndex][j] != -1){
-                                queue[currentIndex][j]++;
+                            if(LRU_queue[currentIndex][j] != -1){
+                                LRU_queue[currentIndex][j]++;
                                 break;
                             }
 
@@ -304,20 +304,20 @@ int main(int argc, char** argv) {
                         //If using LRU
                         if(replacement_policy == LRU){
                             
-                            //stores the least recently used address value in the queue array
+                            //stores the least recently used address value in the LRU_queue array
                             int LRU_add;
 
                             //stores the location of the least recently used address
                             int LRU_i;
                             int LRU_j;
 
-                            // Looping through each row of the queue array
+                            // Looping through each row of the LRU_queue array
                             for(int j = 0; j < associativity; j++){
                                 
-                                //If the current value in queue 
-                                if(queue[currentIndex][j] > LRU_add){
+                                //If the current value in LRU_queue 
+                                if(LRU_queue[currentIndex][j] > LRU_add){
 
-                                    LRU_add = queue[currentIndex][j];
+                                    LRU_add = LRU_queue[currentIndex][j];
                                     LRU_i = currentIndex;
                                     LRU_j = j;
 
@@ -330,8 +330,12 @@ int main(int argc, char** argv) {
                             
                             // Replace the tag in the least recently used position
                             // in the cache with the current tag
-                            
+
                             cache[LRU_i][LRU_j] = currentTag;
+
+                            // If using FIFO
+
+                        } else if (replacement_policy == FIFO){
 
                         }
 
@@ -351,11 +355,11 @@ int main(int argc, char** argv) {
                 // if there isn't:
                 // add the current tag to the cache
                 // set valid to 1
-                // add 1 to the queue
+                // add 1 to the LRU_queue
 
                 cache[currentIndex][i] == currentTag;
                 valid[currentIndex][i] == 1;
-                queue[currentIndex][i]++;
+                LRU_queue[currentIndex][i]++;
 
                 break;
 
@@ -363,15 +367,15 @@ int main(int argc, char** argv) {
 
             } else if (valid[currentIndex][i] == 1) {
 
-                // if there is, add 1 to the hits counter and the queue position and break
+                // if there is, add 1 to the hits counter and the LRU_queue position and break
 
                 if(cache[currentIndex][i] == currentTag){
                     
-                    // if there is, loop through every value > -1 in the queue array and add 1
+                    // if there is, loop through every value > -1 in the LRU_queue array and add 1
                         for(int j = 0; j < associativity; j++){
 
-                            if(queue[currentIndex][j] != -1){
-                                queue[currentIndex][j]++;
+                            if(LRU_queue[currentIndex][j] != -1){
+                                LRU_queue[currentIndex][j]++;
                                 break;
                             }
 
