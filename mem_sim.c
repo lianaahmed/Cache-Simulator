@@ -177,35 +177,39 @@ int main(int argc, char** argv) {
 
     /* You may want to setup your Cache structure here. */
     
+    // Total number of sets
+
+    int setsNum = number_of_cache_blocks / associativity;
+
     // Initialise offsetBits size
-    int g_cache_offset_bits = log(cache_block_size) / log(2);
+    int g_cache_offset_bits = log2(cache_block_size);
     
-    // Initialise indexBits size
-    int indexSize = log(number_of_cache_blocks / associativity) / log(2);
+    // Initialise index bits size
+    int indexSize = log2(setsNum);
 
     // Initialise tagBits size
-    int g_num_cache_tag_bits = 32 - indexSize - g_cache_offset_bits;
+    int g_num_cache_tag_bits = 32 - (indexSize + g_cache_offset_bits);
 
     // 2D array for Cache
 
     uint32_t **cache;
-    cache = malloc(indexSize*sizeof(uint32_t*));
+    cache = malloc(setsNum*sizeof(uint32_t*));
     
-    for (int i = 0; i < indexSize; i++){
+    for (int i = 0; i < setsNum; i++){
         *(cache + i) = malloc(associativity*sizeof(uint32_t));
     }
 
     // 2D array to check valid values in the Cache array
 
     uint32_t **valid;
-    valid = malloc(indexSize*sizeof(uint32_t*));
+    valid = malloc(setsNum*sizeof(uint32_t*));
 
-    for (int i = 0; i < indexSize; i++){
+    for (int i = 0; i < setsNum; i++){
         *(valid + i) = malloc(associativity*sizeof(uint32_t));
     }
     // Initialise all values in the valid array to 0
 
-    for (int i = 0; i < indexSize; i++){
+    for (int i = 0; i < setsNum; i++){
         for (int j = 0; j < associativity; j++){
             valid[i][j] = 0;
         }
@@ -220,7 +224,7 @@ int main(int argc, char** argv) {
         access = read_transaction(ptr_file);
 
         int currentIndex = getBits(access.address, indexSize, g_cache_offset_bits);
-        int currentTag = getBits(access.address, g_num_cache_tag_bits, indexSize + 1);
+        int currentTag = getBits(access.address, g_num_cache_tag_bits, (indexSize + 1));
       
         // If no transactions left, break out of loop.
 
