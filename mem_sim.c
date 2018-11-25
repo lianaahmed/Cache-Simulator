@@ -178,7 +178,7 @@ int main(int argc, char** argv) {
     /* You may want to setup your Cache structure here. */
     
     // Initialise offsetBits size
-    int CacheOffsetBits = log(cache_block_size) / log(2);
+    int g_cache_offset_bits = log(cache_block_size) / log(2);
     
     // Initialise indexBits size
     int indexSize = log(number_of_cache_blocks / associativity) / log(2);
@@ -186,40 +186,31 @@ int main(int argc, char** argv) {
     // Initialise tagBits size
     int CacheTagBits = 32 - indexSize - g_cache_offset_bits;
 
-
-    // Initialise loop counters
-
-    int i;
-    int j;
-
     // 2D array for Cache
 
     uint32_t **cache;
-    cache = malloc(sizeof(uint32_t*)*indexSize);
+    cache = malloc(indexSize*sizeof(uint32_t*));
     
-    for (i = 0; i < indexSize; i++){
-        cache[i] = malloc(sizeof(uint32_t*)*associativity);
+    for (int i = 0; i < indexSize; i++){
+        *(cache + i) = malloc(associativity*sizeof(uint32_t));
     }
 
     // 2D array to check valid values in the Cache array
 
     uint32_t **valid;
-    valid = malloc(sizeof(uint32_t*)*indexSize);
+    valid = malloc(indexSize*sizeof(uint32_t*));
 
-    for (i = 0; i < indexSize; i++){
-        valid[i] = malloc(sizeof(uint32_t*)*associativity);
+    for (int i = 0; i < indexSize; i++){
+        *(valid + i) = malloc(associativity*sizeof(uint32_t));
     }
     // Initialise all values in the valid array to 0
 
-    for (i = 0; i < indexSize; i++){
-        for (j = 0; j < associativity; j++){
+    for (int i = 0; i < indexSize; i++){
+        for (int j = 0; j < associativity; j++){
             valid[i][j] = 0;
         }
     }
 
-    free(cache);
-    free(valid);
-    
     mem_access_t access;
 
     /* Loop until the whole trace file has been read. */
@@ -239,7 +230,9 @@ int main(int argc, char** argv) {
 
         // Add your code here!
 
-        for (i = 0; i < associativity; i ++){
+        // Loops through every position in the cache
+
+        for (int i = 0; i < associativity; i++){
 
             // If at the last position in the cache
             if(i == (associativity - 1)){
@@ -278,8 +271,8 @@ int main(int argc, char** argv) {
 
                 }
 
-            // If not at last position in the cache
-            // check if there isn't an item in the cache
+                // If not at last position in the cache
+                // check if there isn't an item in the cache
 
             } else if(valid[currentIndex][i] == 0){
 
@@ -291,7 +284,7 @@ int main(int argc, char** argv) {
 
                 break;
 
-            // check if there is an item in the cache
+                // check if there is an item in the cache
 
             } else if (valid[currentIndex][i] == 1) {
 
@@ -309,6 +302,10 @@ int main(int argc, char** argv) {
 
     g_result.cache_hits = hits;
     g_result.cache_misses = misses;
+    
+    
+    free(cache);
+    free(valid);
     
     /* Do not modify code below. */
     /* Make sure that all the parameters are appropriately populated. */
