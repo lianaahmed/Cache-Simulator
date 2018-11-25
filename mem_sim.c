@@ -184,7 +184,7 @@ int main(int argc, char** argv) {
     int indexSize = log(number_of_cache_blocks / associativity) / log(2);
 
     // Initialise tagBits size
-    int CacheTagBits = 32 - indexSize - g_cache_offset_bits;
+    int g_num_cache_tag_bits = 32 - indexSize - g_cache_offset_bits;
 
     // 2D array for Cache
 
