@@ -100,7 +100,6 @@ void print_statistics(uint32_t num_cache_tag_bits, uint32_t cache_offset_bits, r
 
 
 
-
 int main(int argc, char** argv) {
     time_t t;
     /* Intializes random number generator */
@@ -168,13 +167,13 @@ int main(int argc, char** argv) {
     /* You may want to setup your Cache structure here. */
     
     // Initialise offsetBits size
-    int offsetBits = log(cache_block_size) / log(2);
+    int g_cache_offset_bits = log(cache_block_size) / log(2);
     
     // Initialise indexBits size
     int indexBits = log(number_of_cache_blocks / associativity) / log(2);
 
     // Initialise tagBits size
-    int tagBits = 32 - indexBits - offsetBits;
+    int g_num_cache_tag_bits = 32 - indexBits - g_cache_offset_bits;
 
 
     // Initialise loop counters
@@ -211,14 +210,16 @@ int main(int argc, char** argv) {
     mem_access_t access;
 
     /* Loop until the whole trace file has been read. */
+
+    
     while(1) {
         access = read_transaction(ptr_file);
         // If no transactions left, break out of loop.
         if (access.address == 0){
             break;
         }
-            
-
+        
+        
         /* Add your code here */
 
     }
