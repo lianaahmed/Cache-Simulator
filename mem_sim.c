@@ -103,13 +103,6 @@ void print_statistics(uint32_t num_cache_tag_bits, uint32_t cache_offset_bits, r
     int hits = 0;
     int misses = 0;
 
-// Gets specified bits from a 32 bit address
-
-int getBits(int address, int bitsLen, int pos){
-
-    return (((1 << bitsLen) - 1) & (address >> (pos - 1)));
-
-}
 
 int main(int argc, char** argv) {
     time_t t;
@@ -239,16 +232,22 @@ int main(int argc, char** argv) {
     while(1) {
 
         access = read_transaction(ptr_file);
-
-        int currentIndex = getBits(access.address, indexSize, (g_cache_offset_bits));
-        int currentTag = getBits(access.address, g_num_cache_tag_bits, (indexSize));
-      
+        
         // If no transactions left, break out of loop.
 
         if (access.address == 0){
             break;
         }
 
+        uint32_t currentTag = access.address >> (32 - g_num_cache_tag_bits);
+
+
+        uint32_t currentIndex = 0;
+
+        if(setsNum> 1){
+            currentIndex = ((access.address << g_num_cache_tag_bits) - 1) >> (g_num_cache_tag_bits + g_cache_offset_bits);
+        }
+      
         // Add your code here!
 
         // Loops through every position in the cache
@@ -267,8 +266,8 @@ int main(int argc, char** argv) {
                     // set valid to 1
                     // add 1 to the queue position
 
-                    cache[currentIndex][i] == currentTag;
-                    valid[currentIndex][i] == 1;
+                    cache[currentIndex][i] = currentTag;
+                    valid[currentIndex][i] = 1;
 
                     //if using LRU
                     if(replacement_policy == LRU){
@@ -288,7 +287,6 @@ int main(int argc, char** argv) {
                         }
 
                     }
-                   
 
                     break;
 
@@ -431,8 +429,8 @@ int main(int argc, char** argv) {
                 // set valid to 1
                 // add 1 to the queue position
 
-                cache[currentIndex][i] == currentTag;
-                valid[currentIndex][i] == 1;
+                cache[currentIndex][i] = currentTag;
+                valid[currentIndex][i] = 1;
                
                 //If using LRU add 1 to queue
                 if(replacement_policy == LRU){
@@ -456,7 +454,6 @@ int main(int argc, char** argv) {
 
                 }
                     
-
                 break;
 
                 // check if there is an item in the cache
