@@ -217,18 +217,18 @@ int main(int argc, char** argv) {
 
     // 2D array used to keep track of when each cache position was accessed
 
-    uint32_t **LRU_queue;
-    LRU_queue = malloc(setsNum*sizeof(uint32_t*));
+    uint32_t **queue;
+    queue = malloc(setsNum*sizeof(uint32_t*));
 
     for (int i = 0; i < setsNum; i++){
-        *(LRU_queue + i) = malloc(associativity*sizeof(uint32_t));
+        *(queue + i) = malloc(associativity*sizeof(uint32_t));
     }
 
-    // Initialise all values in the LRU_queue array to -1
+    // Initialise all values in the queue array to -1
 
     for (int i = 0; i < setsNum; i++){
         for (int j = 0; j < associativity; j++){
-            LRU_queue[i][j] = -1;
+            queue[i][j] = -1;
         }
     }
 
@@ -265,11 +265,30 @@ int main(int argc, char** argv) {
                     // if there isn't:
                     // add the current tag to the cache
                     // set valid to 1
-                    // add 1 to the LRU_queue position
+                    // add 1 to the queue position
 
                     cache[currentIndex][i] == currentTag;
                     valid[currentIndex][i] == 1;
-                    LRU_queue[currentIndex][i]++;
+
+                    //if using LRU
+                    if(replacement_policy == LRU){
+                        queue[currentIndex][i]++;
+                    }
+
+                    //if using FIFO
+                    else if(replacement_policy == FIFO){
+
+                        // set queue to 0
+                        queue[currentIndex][i] = 0;
+
+                        //Loop through every other position i the queue row and add 1
+                        for(int j = 0; j < (associativity - 1); j++){
+
+                            queue[currentIndex][j]++;
+
+                        }
+
+                    }
 
                     break;
 
@@ -280,19 +299,40 @@ int main(int argc, char** argv) {
                     // If there is, check if the tag matches the current tag in the cache
                     if(cache[currentIndex][i] == currentTag){
                         
-                        // if there is, loop through every value > -1 in the LRU_queue array and add 1
-                        for(int j = 0; j < associativity; j++){
+                        //if using LRU
+                        if(replacement_policy == LRU){
 
-                            if(LRU_queue[currentIndex][j] != -1){
-                                LRU_queue[currentIndex][j]++;
-                                break;
+                            // loop through every value > -1 in the queue array and add 1
+                            for(int j = 0; j < associativity; j++){
+                                // Check if the cache has been accessed yet
+                                if(queue[currentIndex][j] != -1){
+
+                                    // If it has, add 1 to thee queue and break
+                                    queue[currentIndex][j]++;
+                                    break;
+
+                                }
+
                             }
+                        
+                        } 
+                        // If using FIFO
+                        else if(replacement_policy == FIFO){
 
+                            //Set queue as 0
+                            queue[currentIndex][i] = 0;
+
+                            // Loop through every other position in the queue row and add 1
+                            for(int j = 0; j < (associativity - 1); j++){
+
+                                queue[currentIndex][j]++;
+
+                            }
                         }
-
                         // add one to the hits counter and break
                         hits++;
                         break;
+
                     } 
                     else {
 
@@ -304,20 +344,20 @@ int main(int argc, char** argv) {
                         //If using LRU
                         if(replacement_policy == LRU){
                             
-                            //stores the least recently used address value in the LRU_queue array
-                            int LRU_add;
+                            //stores the least recently used address value in the queue array
+                            int LRU_add = 0;
 
                             //stores the location of the least recently used address
                             int LRU_i;
                             int LRU_j;
 
-                            // Looping through each row of the LRU_queue array
+                            // Looping through each row of the queue array
                             for(int j = 0; j < associativity; j++){
                                 
-                                //If the current value in LRU_queue 
-                                if(LRU_queue[currentIndex][j] > LRU_add){
+                                //If the current value in queue 
+                                if(queue[currentIndex][j] > LRU_add){
 
-                                    LRU_add = LRU_queue[currentIndex][j];
+                                    LRU_add = queue[currentIndex][j];
                                     LRU_i = currentIndex;
                                     LRU_j = j;
 
@@ -337,6 +377,31 @@ int main(int argc, char** argv) {
 
                         } else if (replacement_policy == FIFO){
 
+                            int FIFO_add = 0;
+
+                            int FIFO_i;
+                            int FIFO_j;
+
+                            for(int j = 0; j < associativity; j++){
+
+                                if (queue[currentIndex][j] > FIFO_add){
+                                    
+                                    FIFO_add = queue[currentIndex][j];
+                                    FIFO_i = currentIndex;
+                                    FIFO_j = j;
+
+                                } else {
+
+                                    break;
+
+                                }
+
+                            }
+
+                            // Replace the tag in the first in position
+                            // in the cache with the current tag
+
+                            cache[FIFO_i][FIFO_j] = currentTag;
                         }
 
                         break;
@@ -349,38 +414,79 @@ int main(int argc, char** argv) {
 
             } else if(valid[currentIndex][i] == 0){
 
-                // if there isn't, add the current tag to the cache
-                // set valid to 1
-
                 // if there isn't:
                 // add the current tag to the cache
                 // set valid to 1
-                // add 1 to the LRU_queue
+                // add 1 to the queue position
 
                 cache[currentIndex][i] == currentTag;
                 valid[currentIndex][i] == 1;
-                LRU_queue[currentIndex][i]++;
+               
+                //If using LRU add 1 to queue
+                if(replacement_policy == LRU){
+                    queue[currentIndex][i]++;
+                }
+                //if using FIFO
+                else if(replacement_policy == FIFO){
+
+                    // set queue to 0
+                    queue[currentIndex][i] = 0;
+
+                    for(int j = 0; j < associativity; j++){
+
+                        // If not at the same queue position as the one we just set to 0
+                        // add 1 to the queue position
+                        if(j != i){
+                            queue[currentIndex][j]++;
+                        }
+
+                    }
+
+                }
+                    
 
                 break;
 
                 // check if there is an item in the cache
-
             } else if (valid[currentIndex][i] == 1) {
 
-                // if there is, add 1 to the hits counter and the LRU_queue position and break
-
+                // if there is, add 1 to the hits counter and the queue position and break
                 if(cache[currentIndex][i] == currentTag){
                     
-                    // if there is, loop through every value > -1 in the LRU_queue array and add 1
-                        for(int j = 0; j < associativity; j++){
+                     //if using LRU
+                        if(replacement_policy == LRU){
 
-                            if(LRU_queue[currentIndex][j] != -1){
-                                LRU_queue[currentIndex][j]++;
-                                break;
+                            // loop through every value > -1 in the queue array and add 1
+                            for(int j = 0; j < associativity; j++){
+                                // Check if the cache has been accessed yet
+                                if(queue[currentIndex][j] != -1){
+
+                                    // If it has, add 1 to thee queue and break
+                                    queue[currentIndex][j]++;
+                                    break;
+
+                                }
+
                             }
+                        
+                        } 
+                        // If using FIFO
+                        else if(replacement_policy == FIFO){
 
+                            //Set queue as 0
+                            queue[currentIndex][i] = 0;
+
+                            // Loop through every other position in the queue row and add 1
+                            for(int j = 0; j < associativity; j++){
+                                
+                                 // If not at the same queue position as the one we just set to 0
+                                 // add 1 to the queue position
+                                if(i != j){
+                                    queue[currentIndex][j]++;
+                                }
+                
+                            }
                         }
-
                     // add one to the hits counter and break
                     hits++;
                     break;
