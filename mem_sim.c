@@ -411,7 +411,7 @@ int main(int argc, char** argv) {
 
                             // replaces the random tag with the current tag
                             cache[currentIndex][rNum] = currentTag;
-                            
+
                         }
 
                         break;
@@ -507,12 +507,16 @@ int main(int argc, char** argv) {
 
     }
 
+
+    // Sets cache_hits to the value in hits
+    // Sets cache_missses to the value in misses
     g_result.cache_hits = hits;
     g_result.cache_misses = misses;
     
-    
+    // clears the memory in the cache, valid and queue arrays
     free(cache);
     free(valid);
+    free(queue);
     
     /* Do not modify code below. */
     /* Make sure that all the parameters are appropriately populated. */
