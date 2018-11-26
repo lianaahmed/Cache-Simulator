@@ -271,8 +271,20 @@ int main(int argc, char** argv) {
 
                     //if using LRU
                     if(replacement_policy == LRU){
-                        queue[currentIndex][i]++;
+                         // loop through every value > -1 in the queue array and add 1
+                        for(int j = 0; j < associativity; j++){
+                            // Check if the cache has been accessed yet
+                            if(queue[currentIndex][j] != -1){
+
+                                // If it has, add 1 to thee queue and break
+                                queue[currentIndex][j]++;
+                                break;
+
+                            }
+
+                        }
                     }
+                    
                     //if using FIFO
                     else if(replacement_policy == FIFO){
 
@@ -402,6 +414,19 @@ int main(int argc, char** argv) {
                             // in the cache with the current tag
 
                             cache[FIFO_i][FIFO_j] = currentTag;
+
+                            //Set queue as 0
+                            queue[currentIndex][FIFO_j] = 0;
+
+                            // Loop through every other position in the queue row and add 1
+                            for(int j = 0; j < associativity; j++){
+
+                                if(j != FIFO_j){
+                                    queue[currentIndex][j]++;
+                                }
+
+                            }
+
                         }
                         // If random
                         else if(replacement_policy == Random){
@@ -432,9 +457,20 @@ int main(int argc, char** argv) {
                 cache[currentIndex][i] = currentTag;
                 valid[currentIndex][i] = 1;
                
-                //If using LRU add 1 to queue
+                 //if using LRU
                 if(replacement_policy == LRU){
-                    queue[currentIndex][i]++;
+                    // loop through every value > -1 in the queue array and add 1
+                    for(int j = 0; j < associativity; j++){
+                        // Check if the cache has been accessed yet
+                        if(queue[currentIndex][j] != -1){
+
+                            // If it has, add 1 to thee queue and break
+                            queue[currentIndex][j]++;
+                            break;
+
+                        }
+
+                    }
                 }
                 //if using FIFO
                 else if(replacement_policy == FIFO){
