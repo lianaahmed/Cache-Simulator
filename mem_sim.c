@@ -98,10 +98,10 @@ void print_statistics(uint32_t num_cache_tag_bits, uint32_t cache_offset_bits, r
  *
  */
 
-// Counters for Hits and Misses
+ // Counters for Hits and Misses
 
-int hits = 0;
-int misses = 0;
+    int hits = 0;
+    int misses = 0;
 
 // Gets specified bits from a 32 bit address
 
@@ -240,8 +240,8 @@ int main(int argc, char** argv) {
 
         access = read_transaction(ptr_file);
 
-        int currentIndex = getBits(access.address, indexSize, g_cache_offset_bits);
-        int currentTag = getBits(access.address, g_num_cache_tag_bits, (indexSize + 1));
+        int currentIndex = getBits(access.address, indexSize, (g_cache_offset_bits));
+        int currentTag = getBits(access.address, g_num_cache_tag_bits, (indexSize));
       
         // If no transactions left, break out of loop.
 
@@ -299,6 +299,9 @@ int main(int argc, char** argv) {
                     // If there is, check if the tag matches the current tag in the cache
                     if(cache[currentIndex][i] == currentTag){
                         
+                        // add one to the hits counter
+                        hits++;
+
                         //if using LRU
                         if(replacement_policy == LRU){
 
@@ -329,8 +332,7 @@ int main(int argc, char** argv) {
 
                             }
                         }
-                        // add one to the hits counter and break
-                        hits++;
+                        
                         break;
 
                     } 
@@ -463,6 +465,9 @@ int main(int argc, char** argv) {
                 // if there is, add 1 to the hits counter and the queue position and break
                 if(cache[currentIndex][i] == currentTag){
                     
+                    // add one to the hits counter
+                    hits++;
+
                      //if using LRU
                         if(replacement_policy == LRU){
 
@@ -497,8 +502,7 @@ int main(int argc, char** argv) {
                 
                             }
                         }
-                    // add one to the hits counter and break
-                    hits++;
+                    
                     break;
                 }
 
@@ -507,7 +511,7 @@ int main(int argc, char** argv) {
 
     }
 
-
+    
     // Sets cache_hits to the value in hits
     // Sets cache_missses to the value in misses
     g_result.cache_hits = hits;
