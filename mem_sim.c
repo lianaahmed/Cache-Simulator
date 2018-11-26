@@ -274,7 +274,6 @@ int main(int argc, char** argv) {
                     if(replacement_policy == LRU){
                         queue[currentIndex][i]++;
                     }
-
                     //if using FIFO
                     else if(replacement_policy == FIFO){
 
@@ -289,6 +288,7 @@ int main(int argc, char** argv) {
                         }
 
                     }
+                   
 
                     break;
 
@@ -402,6 +402,16 @@ int main(int argc, char** argv) {
                             // in the cache with the current tag
 
                             cache[FIFO_i][FIFO_j] = currentTag;
+                        }
+                        // If random
+                        else if(replacement_policy == Random){
+
+                            //Generates a random number between 0 and (associativity - 1)
+                            int rNum = rand() % associativity;
+
+                            // replaces the random tag with the current tag
+                            cache[currentIndex][rNum] = currentTag;
+                            
                         }
 
                         break;
