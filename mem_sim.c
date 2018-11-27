@@ -239,20 +239,29 @@ int main(int argc, char** argv) {
             break;
         }
 
+        // Add your code here!
+
+        // Gets the tag from the current address
         int currentTag = access.address >> (32 - g_num_cache_tag_bits);
 
 
+        //If there is only one set in th cache, we set the currentIndex to 0
+        // As we direct map each tag into the cache 
         int currentIndex = 0;
 
-        if(setsNum > 1){
+        //Otherwise we get the index from the current address
+        if(setsNum > 0){
             currentIndex = ((access.address << g_num_cache_tag_bits) - 1) >> (g_num_cache_tag_bits + g_cache_offset_bits);
         }
 
-        // Add your code here!
         
+        //Boolean variables to check if there is a hit
+        //And if the tag has been added to the cache for the first time
         int found = 0;
-        int found_i;
         int justAdded;
+
+        //Stores the position in the cache where the hit was found
+        int found_i;
 
         //Generates a random number between 0 and (associativity - 1)
         int rNum = rand() % associativity;
@@ -260,7 +269,7 @@ int main(int argc, char** argv) {
         // Loops through every position in the cache
         for(int i = 0; i < associativity; i++){
 
-            //If nothing in the cache, put current tag in cache and break
+            //If nothing in the cache, put current tag in cache and set valid to 1
             if(valid[currentIndex][i] == 0){
                 cache[currentIndex][i] = currentTag;
                 valid[currentIndex][i] = 1;
@@ -268,8 +277,10 @@ int main(int argc, char** argv) {
                 //if using LRU
                 if(replacement_policy == LRU){
 
+                    //Adds 1 to the current position to the queue
                     queue[currentIndex][i]++;
-                    // loop through every value > -1 in the queue array and add 1
+
+                    // loop through every other value > -1 in the queue array and add 1
                     for(int j = 0; j < associativity; j++){
                         if((queue[currentIndex][j] != -1) && (j != i)){
 
@@ -280,10 +291,12 @@ int main(int argc, char** argv) {
                     }
                 }
 
+                //set justAdded to 1 and break
                 justAdded = 1;
-            
                 break;
             }
+
+            //Else if the tag matches the current tag in the cache, set found as 1 and justAdded a 0.
             else if(cache[currentIndex][i] == currentTag && valid[currentIndex][i] == 1){
                 found = 1;
                 found_i = i;
@@ -294,11 +307,17 @@ int main(int argc, char** argv) {
         }
         //If hit
         if(found == 1 && (valid[currentIndex][found_i] == 1 && justAdded == 0)){
+
+            //Add 1 to hits counter
             hits++;
+
+            //put current tag in the position in the cache where the hit was found
             cache[currentIndex][found_i] = currentTag;
             //If LRU
             if(replacement_policy == LRU){
 
+                //Set queue position to 0 to indicate its been used
+                //Set valid to 1
                 queue[currentIndex][found_i] = 0;
                 valid[currentIndex][found_i] = 1;
                 //Loop through every other value > -1 in queue and add 1
@@ -314,7 +333,7 @@ int main(int argc, char** argv) {
         //If miss
         } else if (found == 0 && justAdded == 0){
 
-            // if we coudn't find a match, add 1 to misses
+            // add 1 to misses counter
             misses++;
 
             //If using LRU
@@ -328,10 +347,13 @@ int main(int argc, char** argv) {
                 // Looping through each row of the queue array
                 for(int j = 0; j < associativity; j++){
                                 
-                    //If the current value in queue 
+                    //If the current value in queue > the value stored in add
                     if(queue[currentIndex][j] > LRU_add){
 
+                        //set LRU_add to the current value in queue
                         LRU_add = queue[currentIndex][j];
+
+                        //set LRU_j to the counter position j 
                         LRU_j = j;
 
                     } 
@@ -341,6 +363,8 @@ int main(int argc, char** argv) {
                 // in the cache with the current tag
 
                 cache[currentIndex][LRU_j] = currentTag;
+
+                //Set valid to 1 and queue to 0
                 valid[currentIndex][LRU_j] = 1;
                 queue[currentIndex][LRU_j] = 0;
 
@@ -350,30 +374,41 @@ int main(int argc, char** argv) {
                         queue[currentIndex][j]++;
                     }
                 }
-
+            //If using fifo
             } else if(replacement_policy == FIFO){
                 
+                //Loop through each position in the cache row
                 for(int i = 0; i < associativity; i++){
+
+                    //If at the last position in the row
                     if(i == (associativity - 1)){
+                        //put the tag in the current position in the cache
                         cache[currentIndex][i] = currentTag;
+                        //set valid to 1
                         valid[currentIndex][i] = 1;
                     }
+                    //otherwise
                     else{
+                        // put the item in cache[i+1] into the current position in cache
                         cache[currentIndex][i] = cache[currentIndex][i+1];
+                        // put item in the valid[i+1] into the current position in valid    //Every gets shifted along as they are being used
                         valid[currentIndex][i] = valid[currentIndex][i+1];
                     }
                 }
             } // If random
             else if(replacement_policy == Random){
-
                 
-
                 // replaces the random tag with the current tag
                 cache[currentIndex][rNum] = currentTag;
 
             }
             
         }   
+
+        // printf("current: %d \n", currentTag);
+        // printf("current index: %d \n", currentIndex);
+        // printf("new?: %d \n", justAdded);
+        // printf("hit?: %d \n", found);
 
     }
 
@@ -382,6 +417,7 @@ int main(int argc, char** argv) {
     // Sets cache_missses to the value in misses
     g_result.cache_hits = hits;
     g_result.cache_misses = misses;
+
     
     // clears the memory in the cache, valid and queue arrays
     free(cache);
