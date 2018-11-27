@@ -247,12 +247,15 @@ int main(int argc, char** argv) {
         if(setsNum > 1){
             currentIndex = ((access.address << g_num_cache_tag_bits) - 1) >> (g_num_cache_tag_bits + g_cache_offset_bits);
         }
-      
-        // Add your code here!
 
+        // Add your code here!
         
         int found = 0;
         int found_i;
+        int justAdded;
+
+        //Generates a random number between 0 and (associativity - 1)
+        int rNum = rand() % associativity;
 
         // Loops through every position in the cache
         for(int i = 0; i < associativity; i++){
@@ -276,35 +279,40 @@ int main(int argc, char** argv) {
 
                     }
                 }
+
+                justAdded = 1;
             
                 break;
             }
-            if(cache[currentIndex][i] == currentTag && valid[currentIndex][i] == 1){
+            else if(cache[currentIndex][i] == currentTag && valid[currentIndex][i] == 1){
                 found = 1;
                 found_i = i;
+                justAdded = 0;
                 break;
             }
 
         }
         //If hit
-        if(found == 1 && (valid[currentIndex][found_i] == 1)){
+        if(found == 1 && (valid[currentIndex][found_i] == 1 && justAdded == 0)){
             hits++;
             cache[currentIndex][found_i] = currentTag;
             //If LRU
             if(replacement_policy == LRU){
 
-                queue[currentIndex][found_i]++;
+                queue[currentIndex][found_i] = 0;
+                valid[currentIndex][found_i] = 1;
                 //Loop through every other value > -1 in queue and add 1
                 for(int j = 0; j < associativity; j++){
                     if(queue[currentIndex][j] != -1 && (found_i != j)){
                         queue[currentIndex][j]++;
                     }
                 }
+
                 
             }
 
         //If miss
-        } else if (found == 0 && (valid[currentIndex][found_i] == 1)){
+        } else if (found == 0 && justAdded == 0){
 
             // if we coudn't find a match, add 1 to misses
             misses++;
@@ -333,7 +341,7 @@ int main(int argc, char** argv) {
                 // in the cache with the current tag
 
                 cache[currentIndex][LRU_j] = currentTag;
-
+                valid[currentIndex][LRU_j] = 1;
                 queue[currentIndex][LRU_j] = 0;
 
                 //Loop through every other value > -1 in queue and add 1
@@ -358,8 +366,7 @@ int main(int argc, char** argv) {
             } // If random
             else if(replacement_policy == Random){
 
-                //Generates a random number between 0 and (associativity - 1)
-                int rNum = rand() % associativity;
+                
 
                 // replaces the random tag with the current tag
                 cache[currentIndex][rNum] = currentTag;
